@@ -1710,6 +1710,9 @@ name = "youtube2_spotify"
 version = "0.1.0"
 dependencies = [
  "dotenv",
+ "reqwest",
  "rspotify",
+ "serde",
+ "serde_json",
  "tokio",
 ]

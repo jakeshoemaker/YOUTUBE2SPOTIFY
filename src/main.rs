@@ -14,8 +14,14 @@ use rspotify::{
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
     dotenv().ok();
-    /*
     let spotify = setup_spotify().await;
+
+    /*
+    TODO: 
+      1. grab spotify' user id
+      2. build call to make playlist
+      3. build call to search for song, 
+      4. if found, add to playlist
 
     // Running the requests
     let market = Market::Country(Country::Spain);
@@ -26,33 +32,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     println!("Response: {artists:?}");
     */
-    // set up yt 
-    let playlist_id = "PLm323Lc7iSW9oSIDihesMJXmMNfh8U59k";
-    let api_key = dotenv::var("YOUTUBE_API_KEY").unwrap();
-    let playlist_url = format!(
-        "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={}&key={}&maxResults=50",
-        playlist_id, api_key
-    );
-    let client = reqwest::Client::new();
-    let response = client.get(&playlist_url)
-        .send()
-        .await?
-        .json::<Playlist>()
-        .await?;
+    let song_titles = match gather_results().await {
+        Ok(t) => t,
+        Err(..) => panic!("encountered an error")
+    };
 
-    for item in response.items {
-        println!("Title: {}", item.snippet.title);
-        //println!("Description: {}", item.snippet.description);
-    }
+    for t in song_titles {
+        println!("Title: {}", t);
+    };
 
-    let next_page_token = response.next_page_token.unwrap_or("skip".to_string());
-    
     Ok(())
 }
 
 pub async fn gather_results() -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut collect_data = true;
-    let mut next_page_token = "";
+    let mut next_page_token = "".to_string();
     let mut yt_results: Vec<String> = Vec::new(); 
     let client = reqwest::Client::new();
     let mut res;
@@ -63,7 +57,7 @@ pub async fn gather_results() -> Result<Vec<String>, Box<dyn std::error::Error>>
         let url = build_youtube_url(
             dotenv::var("PLAYLIST_ID").unwrap(), 
             dotenv::var("YOUTUBE_API_KEY").unwrap(),
-            next_page_token.to_string());
+            next_page_token);
         res = client.get(&url)
             .send()
             .await?
@@ -73,8 +67,14 @@ pub async fn gather_results() -> Result<Vec<String>, Box<dyn std::error::Error>>
         for i in res.items {
             yt_results.push(i.snippet.title);
         };
-        // whyy it drop valueeeeee
-        next_page_token = &res.next_page_token.unwrap_or("skip".to_string());
+        // if we have another page token, save bind it, and keep gathering results
+        next_page_token = match res.next_page_token {
+            Some(t) => t.to_string(),
+            None => "".to_string()
+        };
+        if next_page_token == "".to_string() {
+            collect_data = false;
+        }
     }
 
     return Ok(yt_results);

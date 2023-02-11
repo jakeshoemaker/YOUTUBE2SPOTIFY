@@ -1,3 +1,8 @@
+pub mod aggregator;
+
+use std::fmt::Formatter;
+
+use aggregator::aggregator::Playlist;
 use dotenv::dotenv;
 use rspotify::{
     model::{AdditionalType, Country, Market},
@@ -5,13 +10,18 @@ use rspotify::{
     scopes, AuthCodeSpotify, Credentials, OAuth,
 };
 
-
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
     dotenv().ok();
     let spotify = setup_spotify().await;
-    
+
+    /*
+    TODO: 
+      1. grab spotify' user id
+      2. build call to make playlist
+      3. build call to search for song, 
+      4. if found, add to playlist
 
     // Running the requests
     let market = Market::Country(Country::Spain);
@@ -21,6 +31,64 @@ async fn main() {
         .await;
 
     println!("Response: {artists:?}");
+    */
+    let song_titles = match gather_results().await {
+        Ok(t) => t,
+        Err(..) => panic!("encountered an error")
+    };
+
+    for t in song_titles {
+        println!("Title: {}", t);
+    };
+
+    Ok(())
+}
+
+pub async fn gather_results() -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let mut collect_data = true;
+    let mut next_page_token = "".to_string();
+    let mut yt_results: Vec<String> = Vec::new(); 
+    let client = reqwest::Client::new();
+    let mut res;
+    
+    // as long as we keep getting a next_page, gather results and stuff titles into list
+    while collect_data {
+        // build the youtube call
+        let url = build_youtube_url(
+            dotenv::var("PLAYLIST_ID").unwrap(), 
+            dotenv::var("YOUTUBE_API_KEY").unwrap(),
+            next_page_token);
+        res = client.get(&url)
+            .send()
+            .await?
+            .json::<Playlist>()
+            .await?;
+
+        for i in res.items {
+            yt_results.push(i.snippet.title);
+        };
+        // if we have another page token, save bind it, and keep gathering results
+        next_page_token = match res.next_page_token {
+            Some(t) => t.to_string(),
+            None => "".to_string()
+        };
+        if next_page_token == "".to_string() {
+            collect_data = false;
+        }
+    }
+
+    return Ok(yt_results);
+}
+
+pub fn build_youtube_url(playlist_id: String, api_key: String, next_page_token: String) -> String {
+    let mut query = format!(
+        "https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={}&key={}&maxResults=50",
+        playlist_id, api_key
+    );
+    if next_page_token != "skip" || next_page_token != "" {
+        query.push_str(&format!("&pageToken={}", next_page_token));
+    };
+    return query;
 }
 
 pub async fn setup_spotify() -> AuthCodeSpotify {
@@ -35,3 +103,4 @@ pub async fn setup_spotify() -> AuthCodeSpotify {
     println!("token got");
     return spotify;
 }
+

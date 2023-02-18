@@ -5,7 +5,7 @@ use std::fmt::Formatter;
 use aggregator::aggregator::Playlist;
 use dotenv::dotenv;
 use rspotify::{
-    model::{AdditionalType, Country, Market},
+    model::{SearchType, Country, Market, SearchResult},
     prelude::*,
     scopes, AuthCodeSpotify, Credentials, OAuth,
 };
@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
     dotenv().ok();
     let spotify = setup_spotify().await;
-
+    let market = Market::Country(Country::UnitedStates);
     /*
     TODO: 
       1. grab spotify' user id
@@ -24,7 +24,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
       4. if found, add to playlist
 
     // Running the requests
-    let market = Market::Country(Country::Spain);
     let additional_types = [AdditionalType::Episode];
     let artists = spotify
         .current_playing(Some(market), Some(&additional_types))
@@ -38,7 +37,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     };
 
     for t in song_titles {
-        println!("Title: {}", t);
+        // search spotify to see if track exists
+        let potential_track = spotify.search(&t, SearchType::Track, Some(market), None, None, None).await.unwrap();
+        let tracks = match potential_track {
+            SearchResult::Tracks(t) => t.items,
+            _ => todo!()
+        };
+        // todo: do something with search results
+        // need to come  up with a way that actually selects the correct song we want
+        // any way to validate other than title? 
     };
 
     Ok(())
@@ -97,10 +104,16 @@ pub async fn setup_spotify() -> AuthCodeSpotify {
     let oauth: OAuth = OAuth::from_env(scopes!("user-read-currently-playing")).unwrap();
     let spotify: AuthCodeSpotify = AuthCodeSpotify::new(creds, oauth);
     //  obtain access token, and allow spotify to get a token itself
-    let url = spotify.get_authorize_url(false).unwrap();
-    spotify.prompt_for_token(&url).await.unwrap();
+    let url = match spotify.get_authorize_url(false) {
+        Ok(t) => t,
+        Err(e) => panic!("error getting auth url: {}", e)
+    };
+    
+    match spotify.prompt_for_token(&url).await {
+        Ok(t) => t,
+        Err(e) => panic!("error getting token: {}", e)
+    };
 
-    println!("token got");
     return spotify;
 }
 

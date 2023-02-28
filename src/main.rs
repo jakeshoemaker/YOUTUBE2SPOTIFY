@@ -1,8 +1,7 @@
 pub mod aggregator;
 
-use std::fmt::Formatter;
-
 use aggregator::aggregator::Playlist;
+use aggregator::aggregator::Item;
 use dotenv::dotenv;
 use rspotify::{
     model::{SearchType, Country, Market, SearchResult},
@@ -14,7 +13,9 @@ use rspotify::{
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
     dotenv().ok();
+    println!("dotenv loaded");
     let spotify = setup_spotify().await;
+    println!("spotify setup");
     let market = Market::Country(Country::UnitedStates);
     /*
     TODO: 
@@ -31,18 +32,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
 
     println!("Response: {artists:?}");
     */
-    let song_titles = match gather_results().await {
+    let search_criteria = match gather_results().await {
         Ok(t) => t,
         Err(..) => panic!("encountered an error")
     };
 
-    for t in song_titles {
+    for vec in search_criteria {
+        dbg!(&vec);
         // search spotify to see if track exists
-        let potential_track = spotify.search(&t, SearchType::Track, Some(market), None, None, None).await.unwrap();
-        let tracks = match potential_track {
-            SearchResult::Tracks(t) => t.items,
-            _ => todo!()
-        };
+        //let potential_track = spotify.search(&title, SearchType::Track, Some(market), None, None, None).await.unwrap();
+        //let tracks = match potential_track {
+        //    SearchResult::Tracks(title) => title.items,
+        //    _ => todo!()
+        //};
+        //for i in tracks {
+        //    println!("comparing: {} with this spotify result: {}", title, i.name);
+        //}
         // todo: do something with search results
         // need to come  up with a way that actually selects the correct song we want
         // any way to validate other than title? 
@@ -51,10 +56,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     Ok(())
 }
 
-pub async fn gather_results() -> Result<Vec<String>, Box<dyn std::error::Error>> {
+pub async fn gather_results() -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let mut collect_data = true;
     let mut next_page_token = "".to_string();
-    let mut yt_results: Vec<String> = Vec::new(); 
+    let mut titles: Vec<String> = vec![];
+    let mut artists: Vec<String> = vec![];
+    let mut items: Vec<Item> = vec![];
     let client = reqwest::Client::new();
     let mut res;
     
@@ -71,20 +78,52 @@ pub async fn gather_results() -> Result<Vec<String>, Box<dyn std::error::Error>>
             .json::<Playlist>()
             .await?;
 
-        for i in res.items {
-            yt_results.push(i.snippet.title);
-        };
+        //dbg!(&res);
+        for item in res.items {
+            items.push(item);    
+        }
         // if we have another page token, save bind it, and keep gathering results
-        next_page_token = match res.next_page_token {
-            Some(t) => t.to_string(),
-            None => "".to_string()
-        };
+        next_page_token = res.next_page_token.unwrap_or("".to_string());
+
         if next_page_token == "".to_string() {
             collect_data = false;
         }
     }
 
-    return Ok(yt_results);
+    // ok now that we have song titles.. when it comes to searching, we are using the title as follows:
+    //   1. if the title has a x [-] blah then we treat the minus as the separator: author | song
+    //   2. if no - is supplied, we treat this as a song, and use the youtube channel name as the
+    //     author. this is because people would most likely be copyrighted to play / take a song
+    //     without giving credit
+    
+
+    for i in items {
+        let mut substr = i.snippet.title.split("-");
+        if substr.to_owned().count().eq(&1) {
+            // if split size is one, then this is a song
+            titles.push(substr
+                .next()
+                .unwrap()
+                .to_string()
+            );
+            // push the channel title as the artist
+            artists.push(i.snippet.channel_title);
+        } else {
+            titles.push(substr
+                .next()
+                .unwrap()
+                .to_string()
+            );
+            artists.push(substr
+                .next()
+                .unwrap()
+                .to_string()
+            );
+        }
+        dbg!(&substr);
+    }            
+
+    return Ok(vec![titles, artists]);
 }
 
 pub fn build_youtube_url(playlist_id: String, api_key: String, next_page_token: String) -> String {

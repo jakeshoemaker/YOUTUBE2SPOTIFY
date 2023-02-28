@@ -19,5 +19,8 @@ pub mod aggregator {
     pub struct Snippet {
         pub title: String,
         pub description: String,
+        #[serde(alias = "channelTitle")]
+        pub channel_title: String // TODO: this is not correct, we need the title of the video not
+        // the title of the playlist
     }
 }

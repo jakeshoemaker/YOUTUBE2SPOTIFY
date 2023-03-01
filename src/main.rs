@@ -19,40 +19,56 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let market = Market::Country(Country::UnitedStates);
     /*
     TODO: 
-      1. grab spotify' user id
-      2. build call to make playlist
-      3. build call to search for song, 
-      4. if found, add to playlist
-
-    // Running the requests
-    let additional_types = [AdditionalType::Episode];
-    let artists = spotify
-        .current_playing(Some(market), Some(&additional_types))
-        .await;
-
-    println!("Response: {artists:?}");
+      1. build call to search for song, 
+      2. if found, add to playlist
     */
     let search_criteria = match gather_results().await {
         Ok(t) => t,
         Err(..) => panic!("encountered an error")
     };
 
-    for vec in search_criteria {
-        dbg!(&vec);
-        // search spotify to see if track exists
-        //let potential_track = spotify.search(&title, SearchType::Track, Some(market), None, None, None).await.unwrap();
-        //let tracks = match potential_track {
-        //    SearchResult::Tracks(title) => title.items,
-        //    _ => todo!()
-        //};
-        //for i in tracks {
-        //    println!("comparing: {} with this spotify result: {}", title, i.name);
-        //}
-        // todo: do something with search results
-        // need to come  up with a way that actually selects the correct song we want
-        // any way to validate other than title? 
+    let titles = search_criteria.first().unwrap();
+    let artists = search_criteria.last().unwrap();
+    
+    // search spotify to see if track exists
+    // TODO: need to make a new method that searchs / returns a song ID to add to a playlist
+    let potential_track = 
+        spotify.search(
+            "BoTalks - F*ck It (feat. Caroline Pennell)", 
+            SearchType::Track, 
+            Some(market), 
+            None, 
+            Some(10), 
+            None)
+        .await
+        .unwrap();
+   
+    let search_items = match potential_track {
+        SearchResult::Tracks(t) => t.items,
+        _ => todo!()
     };
 
+    // get self  ( CONTAINS USER ID )
+    let user = spotify
+        .me()
+        .await
+        .unwrap();
+    dbg!(user);
+
+    // example of creating a playlist:
+    //spotify.user_playlist_create(h, name, j, collaborative, description)
+    // example of adding a item to playlist
+    //spotify.playlist_add_items(playlist_id, items, position)
+
+
+    /*
+    * OK here we go. 
+    * search (limit 5)
+    *   -> once we get the search results we could do some string comparison against the
+    *   artist/track name
+    *   like if the spotify search result (either title | artist) exists inside our title + artist
+    *   youtube playlist title -> we accept that as a successful search and add to the playlist
+    */
     Ok(())
 }
 
@@ -61,9 +77,9 @@ pub async fn gather_results() -> Result<Vec<Vec<String>>, Box<dyn std::error::Er
     let mut next_page_token = "".to_string();
     let mut titles: Vec<String> = vec![];
     let mut artists: Vec<String> = vec![];
-    let mut items: Vec<Item> = vec![];
-    let client = reqwest::Client::new();
     let mut res;
+
+    let client = reqwest::Client::new();
     
     // as long as we keep getting a next_page, gather results and stuff titles into list
     while collect_data {
@@ -79,8 +95,29 @@ pub async fn gather_results() -> Result<Vec<Vec<String>>, Box<dyn std::error::Er
             .await?;
 
         //dbg!(&res);
-        for item in res.items {
-            items.push(item);    
+        for i in res.items {
+            let mut substr = i.snippet.title.split("-");
+            if substr.to_owned().count().eq(&1) {
+                // if split size is one, then this is a song
+                titles.push(substr
+                    .next()
+                    .unwrap()
+                    .to_string()
+                );
+                // push the channel title as the artist
+                artists.push(i.snippet.video_owner_channel_title);
+            } else {
+                titles.push(substr
+                    .next()
+                    .unwrap()
+                    .to_string()
+                );
+                artists.push(substr
+                    .next()
+                    .unwrap()
+                    .to_string()
+                );
+            }
         }
         // if we have another page token, save bind it, and keep gathering results
         next_page_token = res.next_page_token.unwrap_or("".to_string());
@@ -95,34 +132,7 @@ pub async fn gather_results() -> Result<Vec<Vec<String>>, Box<dyn std::error::Er
     //   2. if no - is supplied, we treat this as a song, and use the youtube channel name as the
     //     author. this is because people would most likely be copyrighted to play / take a song
     //     without giving credit
-    
-
-    for i in items {
-        let mut substr = i.snippet.title.split("-");
-        if substr.to_owned().count().eq(&1) {
-            // if split size is one, then this is a song
-            titles.push(substr
-                .next()
-                .unwrap()
-                .to_string()
-            );
-            // push the channel title as the artist
-            artists.push(i.snippet.channel_title);
-        } else {
-            titles.push(substr
-                .next()
-                .unwrap()
-                .to_string()
-            );
-            artists.push(substr
-                .next()
-                .unwrap()
-                .to_string()
-            );
-        }
-        dbg!(&substr);
-    }            
-
+    dbg!(&titles, &artists);
     return Ok(vec![titles, artists]);
 }
 

@@ -19,8 +19,14 @@ pub mod aggregator {
     pub struct Snippet {
         pub title: String,
         pub description: String,
-        #[serde(alias = "channelTitle")]
-        pub channel_title: String // TODO: this is not correct, we need the title of the video not
-        // the title of the playlist
+        #[serde(alias = "videoOwnerChannelTitle")]
+        pub video_owner_channel_title: String,
     }
+
+    #[derive(Debug)]
+    pub struct PlaylistSearchCriteria {
+        pub song_titles: Vec<String>,
+        pub artists: Vec<String>
+    }
+
 }

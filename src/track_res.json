@@ -1,0 +1,135 @@
+    FullTrack {
+        album: SimplifiedAlbum {
+            album_group: None,
+            album_type: Some(
+                "single",
+            ),
+            artists: [
+                SimplifiedArtist {
+                    external_urls: {
+                        "spotify": "https://open.spotify.com/artist/3wjluyWXDHiiMKxkhaW1em",
+                    },
+                    href: Some(
+                        "https://api.spotify.com/v1/artists/3wjluyWXDHiiMKxkhaW1em",
+                    ),
+                    id: Some(
+                        ArtistId(
+                            "3wjluyWXDHiiMKxkhaW1em",
+                        ),
+                    ),
+                    name: "BoTalks",
+                },
+            ],
+            available_markets: [],
+            external_urls: {
+                "spotify": "https://open.spotify.com/album/4LwdyYUfcf27Wk5MxdIGZO",
+            },
+            href: Some(
+                "https://api.spotify.com/v1/albums/4LwdyYUfcf27Wk5MxdIGZO",
+            ),
+            id: Some(
+                AlbumId(
+                    "4LwdyYUfcf27Wk5MxdIGZO",
+                ),
+            ),
+            images: [
+                Image {
+                    height: Some(
+                        640,
+                    ),
+                    url: "https://i.scdn.co/image/ab67616d0000b273d48d4527b0e6d163e88a4178",
+                    width: Some(
+                        640,
+                    ),
+                },
+                Image {
+                    height: Some(
+                        300,
+                    ),
+                    url: "https://i.scdn.co/image/ab67616d00001e02d48d4527b0e6d163e88a4178",
+                    width: Some(
+                        300,
+                    ),
+                },
+                Image {
+                    height: Some(
+                        64,
+                    ),
+                    url: "https://i.scdn.co/image/ab67616d00004851d48d4527b0e6d163e88a4178",
+                    width: Some(
+                        64,
+                    ),
+                },
+            ],
+            name: "Fuck It",
+            release_date: Some(
+                "2018-03-08",
+            ),
+            release_date_precision: Some(
+                "day",
+            ),
+            restrictions: None,
+        },
+        artists: [
+            SimplifiedArtist {
+                external_urls: {
+                    "spotify": "https://open.spotify.com/artist/3wjluyWXDHiiMKxkhaW1em",
+                },
+                href: Some(
+                    "https://api.spotify.com/v1/artists/3wjluyWXDHiiMKxkhaW1em",
+                ),
+                id: Some(
+                    ArtistId(
+                        "3wjluyWXDHiiMKxkhaW1em",
+                    ),
+                ),
+                name: "BoTalks",
+            },
+            SimplifiedArtist {
+                external_urls: {
+                    "spotify": "https://open.spotify.com/artist/0cZPTEmf3mlwj5kjVXR4po",
+                },
+                href: Some(
+                    "https://api.spotify.com/v1/artists/0cZPTEmf3mlwj5kjVXR4po",
+                ),
+                id: Some(
+                    ArtistId(
+                        "0cZPTEmf3mlwj5kjVXR4po",
+                    ),
+                ),
+                name: "Caroline Pennell",
+            },
+        ],
+        available_markets: [],
+        disc_number: 1,
+        duration: 240.299s,
+        explicit: true,
+        external_ids: {
+            "isrc": "USA2P1811909",
+        },
+        external_urls: {
+            "spotify": "https://open.spotify.com/track/4e9rT6imBDeYCTNqYx0jQ8",
+        },
+        href: Some(
+            "https://api.spotify.com/v1/tracks/4e9rT6imBDeYCTNqYx0jQ8",
+        ),
+        id: Some(
+            TrackId(
+                "4e9rT6imBDeYCTNqYx0jQ8",
+            ),
+        ),
+        is_local: false,
+        is_playable: Some(
+            true,
+        ),
+        linked_from: None,
+        restrictions: None,
+        name: "Fuck It",
+        popularity: 34,
+        preview_url: Some(
+            "https://p.scdn.co/mp3-preview/ed30c8402dfbd386035dc772593f2ea4c1950e80?cid=aa57409d34364fa89eef8787359b5dbf",
+        ),
+        track_number: 1,
+    },
+]
+

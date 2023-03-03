@@ -1,6 +1,6 @@
 pub mod aggregator {
     use serde::Deserialize;
-    
+   
     #[derive(Deserialize, Debug)]
     pub struct Playlist {
         #[serde(alias = "prevPageToken")]
@@ -28,5 +28,4 @@ pub mod aggregator {
         pub song_titles: Vec<String>,
         pub artists: Vec<String>
     }
-
 }

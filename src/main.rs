@@ -1,4 +1,5 @@
 pub mod aggregator;
+pub mod spotify_handler;
 
 use aggregator::aggregator::Playlist;
 use aggregator::aggregator::Item;
@@ -9,14 +10,16 @@ use rspotify::{
     scopes, AuthCodeSpotify, Credentials, OAuth,
 };
 
+use crate::spotify_handler::spotify_helper::SpotifyHandler;
+
+// todo: there has to be a better way of authenticating spotify
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
     dotenv().ok();
-    println!("dotenv loaded");
-    let spotify = setup_spotify().await;
-    println!("spotify setup");
-    let market = Market::Country(Country::UnitedStates);
+    let spotify_handler = SpotifyHandler::new().await;
+    spotify_handler.test_user_collected();
     /*
     TODO: 
       1. build call to search for song, 
@@ -27,48 +30,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         Err(..) => panic!("encountered an error")
     };
 
-    let titles = search_criteria.first().unwrap();
-    let artists = search_criteria.last().unwrap();
+    let _titles = search_criteria.first().unwrap();
+    let _artists = search_criteria.last().unwrap();
     
     // search spotify to see if track exists
     // TODO: need to make a new method that searchs / returns a song ID to add to a playlist
-    let potential_track = 
-        spotify.search(
-            "BoTalks - F*ck It (feat. Caroline Pennell)", 
-            SearchType::Track, 
-            Some(market), 
-            None, 
-            Some(10), 
-            None)
-        .await
-        .unwrap();
-   
-    let search_items = match potential_track {
-        SearchResult::Tracks(t) => t.items,
-        _ => todo!()
-    };
 
-    // get self  ( CONTAINS USER ID )
-    let user = spotify
-        .me()
-        .await
-        .unwrap();
-    dbg!(user);
+    /*
+        let split_title = test_track_name2.split("-").collect::<Vec<_>>();
+        dbg!(&split_title);
 
+        let search_items = match potential_track {
+            SearchResult::Tracks(t) => t.items,
+            _ => todo!()
+        };
+        dbg!(&search_items);
+    */
     // example of creating a playlist:
     //spotify.user_playlist_create(h, name, j, collaborative, description)
     // example of adding a item to playlist
     //spotify.playlist_add_items(playlist_id, items, position)
-
-
-    /*
-    * OK here we go. 
-    * search (limit 5)
-    *   -> once we get the search results we could do some string comparison against the
-    *   artist/track name
-    *   like if the spotify search result (either title | artist) exists inside our title + artist
-    *   youtube playlist title -> we accept that as a successful search and add to the playlist
-    */
     Ok(())
 }
 
@@ -145,24 +126,5 @@ pub fn build_youtube_url(playlist_id: String, api_key: String, next_page_token: 
         query.push_str(&format!("&pageToken={}", next_page_token));
     };
     return query;
-}
-
-pub async fn setup_spotify() -> AuthCodeSpotify {
-
-    let creds: Credentials = Credentials::from_env().unwrap();
-    let oauth: OAuth = OAuth::from_env(scopes!("user-read-currently-playing")).unwrap();
-    let spotify: AuthCodeSpotify = AuthCodeSpotify::new(creds, oauth);
-    //  obtain access token, and allow spotify to get a token itself
-    let url = match spotify.get_authorize_url(false) {
-        Ok(t) => t,
-        Err(e) => panic!("error getting auth url: {}", e)
-    };
-    
-    match spotify.prompt_for_token(&url).await {
-        Ok(t) => t,
-        Err(e) => panic!("error getting token: {}", e)
-    };
-
-    return spotify;
 }
 

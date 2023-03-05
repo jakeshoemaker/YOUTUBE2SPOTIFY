@@ -8,7 +8,8 @@ pub mod spotify_helper {
     pub struct SpotifyHandler {
         api: AuthCodeSpotify,
         user: PrivateUser,
-        market: Market
+        market: Market,
+        playlist_id: String
     }
 
     impl SpotifyHandler {
@@ -16,10 +17,12 @@ pub mod spotify_helper {
             let api = SpotifyHandler::setup_spotify_authcode().await;
             let user = SpotifyHandler::get_authenticated_user(api.clone()).await;
             let market = Market::Country(Country::UnitedStates);
+            let playlist_id = "".to_string();
             let s = Self {
                 api,
                 user,
-                market
+                market,
+                playlist_id
             };
 
             return s;
@@ -30,36 +33,29 @@ pub mod spotify_helper {
         } 
 
         // guessing we need a spotify id here
-        pub async fn get_track(&self, title_artist_split: Vec<&str>, called_recursively: bool) /* todo return something */ {
-            if called_recursively {
-                println!("called recursively, no match found with first search");
-            }
-            /*
-            * In order to have somewhat accurate searching, we will search using a split,
-            * if we don't get a match, we will call the function recursively, swapping the 
-            * title / artist
-            *
-            * doing this until we find a better wayt to parse the name. most songs i see are split
-            * by "-" so this is how we get data and let spotify find the song. 
-            * (until yt gives us more data abt the song playing this will have to suffice) ??
-            */
-
-            // these are handy to test with 
-            // let test_track_name = &"BoTalks - F*ck It (feat. Caroline Pennell)";
-            // let test_track_name2 = &"deadmau5 - My Heart Has Teeth (feat. Skylar Grey)";
-
-            // todo: helper function to build spotify song query
-            let potential_track = 
+        pub async fn get_track(&self, query: &String) /* todo return something */ {
+            let potential_track = match 
                 self.api.search(
-                    title_artist_split.first().unwrap(), 
+                    query, 
                     SearchType::Track, 
                     Some(self.market), 
                     None, 
                     Some(1), 
                     None)
                 .await
-                .unwrap();
+                .unwrap() {
+                SearchResult::Tracks(t) => t,
+                _ => todo!("finish mapping this")
+            };
+
+            let t1 = potential_track.items.first().unwrap();
+            dbg!(t1);
+
+            // these are handy to test with 
+            // let test_track_name = &"BoTalks - F*ck It (feat. Caroline Pennell)";
+            // let test_track_name2 = &"deadmau5 - My Heart Has Teeth (feat. Skylar Grey)";
         }
+
 
         // private methods
         async fn setup_spotify_authcode() -> AuthCodeSpotify {

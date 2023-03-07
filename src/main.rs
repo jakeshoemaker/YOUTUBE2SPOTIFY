@@ -11,39 +11,25 @@ use spotify_handler::spotify_helper::SpotifyHandler;
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
     dotenv().ok();
-    let spotify_handler = SpotifyHandler::new().await;
-    spotify_handler.test_user_collected();
-    /*
-    TODO: 
-      1. build call to search for song, 
-      2. if found, add to playlist
-    */
+    let mut spotify_handler = SpotifyHandler::new().await;
     let song_titles = match gather_results().await {
         Ok(t) => t,
         Err(..) => panic!("encountered an error")
     };
-
+    
     for x in song_titles {
-        let t = spotify_handler.get_track(&x).await;
-        dbg!(t);
+        spotify_handler.search_for_track(&x).await;
     }
-    // search spotify to see if track exists
-    // TODO: need to make a new method that searchs / returns a song ID to add to a playlist
 
-    /*
-        let split_title = test_track_name2.split("-").collect::<Vec<_>>();
-        dbg!(&split_title);
+    // create the playlist
+    spotify_handler.create_user_playlist().await;
 
-        let search_items = match potential_track {
-            SearchResult::Tracks(t) => t.items,
-            _ => todo!()
-        };
-        dbg!(&search_items);
-    */
-    // example of creating a playlist:
-    //spotify.user_playlist_create(h, name, j, collaborative, description)
-    // example of adding a item to playlist
-    //spotify.playlist_add_items(playlist_id, items, position)
+    // once we have titles in handler add them to playlist
+    let res = spotify_handler.add_tracks_to_playlist()
+        .await;    
+    println!("success! playlist created!!");
+    dbg!(res);
+
     Ok(())
 }
 

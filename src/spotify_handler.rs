@@ -31,6 +31,7 @@ pub mod spotify_helper {
             return s;
         }
 
+        // todo: erroring here -> finish this
         pub async fn search_for_track(&mut self, query: &String) {
             let potential_track = match 
                 self.api.search(

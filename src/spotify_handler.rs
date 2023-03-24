@@ -31,9 +31,8 @@ pub mod spotify_helper {
             return s;
         }
 
-        // todo: erroring here -> finish this
         pub async fn search_for_track(&mut self, query: &String) {
-            let potential_track = match 
+            let search_res =
                 self.api.search(
                     query, 
                     SearchType::Track, 
@@ -41,19 +40,30 @@ pub mod spotify_helper {
                     None, 
                     Some(1), 
                     None)
-                .await
-                .unwrap() {
-                SearchResult::Tracks(t) => t,
-                _ => todo!("finish mapping this")
+                .await;
+
+            let potential_track = match search_res {
+                Ok(t) => match t {
+                            SearchResult::Tracks(t) => t,
+                            _ => return
+                },
+                _ => return
             };
-            let id = potential_track.items
-                .first()
-                .unwrap()
+
+
+            let id = match potential_track.items
+                .first() {
+                    Some(t) => t,
+                    None => return
+                }
                 .id
-                .to_owned()
-                .unwrap();
-            
-            self.track_ids.push(PlayableId::Track(id.clone_static()));
+                .to_owned();
+
+            // safely add track to playlist
+            match id {
+                Some(id) => self.track_ids.push(PlayableId::Track(id.clone_static())),
+                None => return
+            };
         }
 
         //spotify.user_playlist_create(h, name, j, collaborative, description)
@@ -79,9 +89,15 @@ pub mod spotify_helper {
 
             let playlist_id = self.playlist_id.to_owned().unwrap();
             let tracks = self.track_ids.into_iter();
-            return self.api.playlist_add_items(playlist_id, tracks, None)
-                .await
-                .unwrap();
+            let res = self.api.playlist_add_items(playlist_id, tracks, Some(0))
+                .await;
+
+            match res {
+                Ok(playlist_item) => return playlist_item,
+                Err(client_error) => {
+                    panic!("Error adding to playlist: {:?}", client_error);
+                }
+            };
         }
 
         // private methods

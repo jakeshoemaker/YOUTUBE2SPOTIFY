@@ -5,8 +5,7 @@ use aggregator::aggregator::Playlist;
 use dotenv::dotenv;
 use spotify_handler::spotify_helper::SpotifyHandler;
 
-// todo: there has to be a better way of authenticating spotify
-
+// todo: progress bar? setup endpoint to handle callback? allow option for playlist image in sptfy
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     // load env
@@ -18,17 +17,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
     };
     
     for x in song_titles {
-        spotify_handler.search_for_track(&x).await;
+        spotify_handler.search_for_track(&x).await; // adds tracks to list
     }
 
-    // create the playlist
+    // create the playlist using track id's from search
     spotify_handler.create_user_playlist().await;
 
     // once we have titles in handler add them to playlist
     let res = spotify_handler.add_tracks_to_playlist()
         .await;    
+
     println!("success! playlist created!!");
-    dbg!(res);
+    dbg!(&res);
 
     Ok(())
 }

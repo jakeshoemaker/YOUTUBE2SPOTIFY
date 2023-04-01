@@ -4,6 +4,7 @@ pub mod spotify_handler;
 use aggregator::aggregator::Playlist;
 use dotenv::dotenv;
 use spotify_handler::spotify_helper::SpotifyHandler;
+use indicatif::ProgressBar;
 
 // todo: progress bar? setup endpoint to handle callback? allow option for playlist image in sptfy
 #[tokio::main]
@@ -15,10 +16,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>{
         Ok(t) => t,
         Err(..) => panic!("encountered an error")
     };
-    
+ 
+    println!("gathering tracks from youtube");
+    let pg = ProgressBar::new(song_titles.len() as u64);
     for x in song_titles {
         spotify_handler.search_for_track(&x).await; // adds tracks to list
+        pg.inc(1);
     }
+    pg.finish();
 
     // create the playlist using track id's from search
     spotify_handler.create_user_playlist().await;

@@ -20,6 +20,8 @@ $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
         1. redirect_uri
         2. client_id
         3. client_secret
+        
+ (place those in a dotenv) (update soon will do it for ya)
 
 ## Usage
 

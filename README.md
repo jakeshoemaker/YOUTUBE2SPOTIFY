@@ -1,7 +1,7 @@
 # YOUTUBE2SPOTIFY
 #### YOUTUBE2SPOTIFY -> converts a youtube playlist into a playlist on your spotify account
 
-## Dependencies
+## Deps
 1. Install rust [here](https://rustup.rs) *or* by typing this in a terminal:
 ```
 $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh

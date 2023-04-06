@@ -29,19 +29,19 @@ $ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 1. Make sure you have Rust and Cargo installed on your machine.
 2. Clone the repository: 
-'''
+```
 $ git clone https://github.com/jakeshoemaker/YOUTUBE2SPOTIFY.git
-'''
+```
 3. Navigate to project directory
 ### Running the code
 1. Build project: 
-'''
+```
 $ cargo build --release
-'''
+```
 2. Run the executable:
-'''
+```
 $ ./target/release/YOUTUBE2SPOTIFY
-'''
+```
 
 
 ## thanks, and feel free to open a PR or open a issue

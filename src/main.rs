@@ -1,15 +1,45 @@
 pub mod aggregator;
 pub mod spotify_handler;
+pub mod helpers;
 
 use aggregator::aggregator::Playlist;
+use clap::{Arg, ArgAction, Command};
 use dotenv::dotenv;
+use helpers::helpers::get_user_input;
 use spotify_handler::spotify_helper::SpotifyHandler;
 use indicatif::ProgressBar;
 
 // todo: progress bar? setup endpoint to handle callback? allow option for playlist image in sptfy
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
+    let args = Command::new("YOUTUBE2SPOTIFY")
+        .version("0.69")
+        .author("jake s. <jakeshoe3@gmail.com>")
+        .about("Does awesome things")
+        .arg(Arg::new("link").short('l').long("link").required(true)
+            .help("the link to the youtube playlist you want converted"))
+        .arg(Arg::new("playlist_name").short('n').long("name").required(true)
+            .help("the title of the playlist"))
+        .arg(Arg::new("init").short('i').long("init").required(false)
+            .action(ArgAction::SetTrue)
+            .help("run the initialization needed to work"))
+        .get_matches();
+
+    // handle init if flagged
+    if args.get_flag("init") == true {
+        let input = get_user_input("gimme something good bro".to_string());
+        println!("{}: this is the crap you give me? smh", input);
+        panic!("wasn't good enough, bye!");
+    }
+    
+    // IK im panincing rn, dont need to actually build the playlist just wanna short circuit to
+    // test
+    panic!("bye bish");
+
+    // todo: spotify_handler.init()
     // load env
+    // todo: remove for now___
+    #[warn(unreachable_code)]
     dotenv().ok();
     let mut spotify_handler = SpotifyHandler::new().await;
     let song_titles = match gather_results().await {

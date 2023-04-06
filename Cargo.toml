@@ -12,3 +12,4 @@ serde_json = "1.0.91"
 tokio = { version = "1.25.0", features = ["full"] }
 indicatif = "0.17.3"
 itertools = "0.10.5"
+clap = { version = "4.2.1", features = ["derive"] }

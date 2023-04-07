@@ -14,7 +14,7 @@ use indicatif::ProgressBar;
 async fn main() -> Result<(), Box<dyn std::error::Error>>{
     let args = Command::new("YOUTUBE2SPOTIFY")
         .version("0.69")
-        .author("jake s. <jakeshoe3@gmail.com>")
+        .author("jake s")
         .about("Does awesome things")
         .arg(Arg::new("link").short('l').long("link").required(true)
             .help("the link to the youtube playlist you want converted"))
